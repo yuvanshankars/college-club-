@@ -6,7 +6,8 @@ import TaskForm from "@/components/TaskForm";
 import RegisterForm from "@/components/RegisterForm";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Calendar, Users, LogIn } from "lucide-react";
+import { Calendar, Users, LogIn, Check } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("events");
@@ -15,6 +16,7 @@ const Index = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showRegister, setShowRegister] = useState(false);
+  const [registeredEvents, setRegisteredEvents] = useState<string[]>([]);
 
   // Mock login function - would connect to auth system in real implementation
   const handleLogin = (e: React.FormEvent) => {
@@ -22,8 +24,10 @@ const Index = () => {
     // For demo purposes only
     if (email.includes("admin")) {
       setUserRole("admin");
+      toast.success("Logged in as Administrator");
     } else {
       setUserRole("student");
+      toast.success("Logged in as Student");
     }
     setIsLoggedIn(true);
     setActiveTab("events");
@@ -35,13 +39,32 @@ const Index = () => {
     setUserRole(null);
     setEmail("");
     setPassword("");
+    setRegisteredEvents([]);
+    toast.info("Logged out successfully");
   };
 
   // Mock registration success handler
   const handleRegisterSuccess = () => {
     setShowRegister(false);
     // In a real app, this might auto-login the user or show a success message
-    alert("Registration successful! You can now log in.");
+    toast.success("Registration successful! You can now log in.");
+  };
+
+  // Handle event registration
+  const handleEventRegistration = (eventId: string) => {
+    if (!isLoggedIn) {
+      setActiveTab("login");
+      toast.error("Please login to register for events");
+      return;
+    }
+    
+    if (registeredEvents.includes(eventId)) {
+      setRegisteredEvents(registeredEvents.filter(id => id !== eventId));
+      toast.info("You've unregistered from this event");
+    } else {
+      setRegisteredEvents([...registeredEvents, eventId]);
+      toast.success("You've successfully registered for this event!");
+    }
   };
 
   // Mock events data
@@ -77,7 +100,7 @@ const Index = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <header className="flex justify-between items-center mb-8">
+      <header className="flex justify-between items-center mb-8 animate-fade-in">
         <div>
           <h1 className="text-3xl font-bold">College Club Events</h1>
           <p className="text-muted-foreground">Manage and participate in campus activities</p>
@@ -87,12 +110,12 @@ const Index = () => {
           {isLoggedIn ? (
             <div className="flex items-center gap-2">
               <span className="text-sm">
-                Logged in as <strong>{userRole}</strong>
+                Logged in as <strong className="capitalize">{userRole}</strong>
               </span>
-              <Button variant="outline" onClick={handleLogout}>Logout</Button>
+              <Button variant="outline" onClick={handleLogout} className="hover-scale">Logout</Button>
             </div>
           ) : (
-            <Button onClick={() => setActiveTab("login")}>
+            <Button onClick={() => setActiveTab("login")} className="hover-scale">
               <LogIn className="mr-2" size={18} />
               Login
             </Button>
@@ -102,28 +125,30 @@ const Index = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-8">
-          <TabsTrigger value="events">
+          <TabsTrigger value="events" className="hover-scale">
             <Calendar className="mr-2" size={18} />
             Events
           </TabsTrigger>
-          <TabsTrigger value="participants">
+          <TabsTrigger value="participants" className="hover-scale">
             <Users className="mr-2" size={18} />
             Participants
           </TabsTrigger>
-          <TabsTrigger value="login" disabled={isLoggedIn}>
+          <TabsTrigger value="login" disabled={isLoggedIn} className="hover-scale">
             <LogIn className="mr-2" size={18} />
             Login
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="events" className="space-y-4">
+        <TabsContent value="events" className="space-y-4 animate-fade-in">
           {isLoggedIn && userRole === "admin" && (
             <TaskForm />
           )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {events.map(event => (
-              <Card key={event.id}>
+              <Card key={event.id} className={`hover-scale transition-all ${
+                registeredEvents.includes(event.id) ? "border-primary" : ""
+              }`}>
                 <CardHeader>
                   <CardTitle>{event.title}</CardTitle>
                   <CardDescription>{event.department}</CardDescription>
@@ -144,7 +169,19 @@ const Index = () => {
                 <CardFooter>
                   <p className="text-sm text-muted-foreground">{event.location}</p>
                   {isLoggedIn && userRole === "student" && (
-                    <Button className="ml-auto" size="sm">Register</Button>
+                    <Button 
+                      className={`ml-auto transition-all ${registeredEvents.includes(event.id) ? "bg-green-500 hover:bg-green-600" : ""}`}
+                      size="sm"
+                      onClick={() => handleEventRegistration(event.id)}
+                    >
+                      {registeredEvents.includes(event.id) ? (
+                        <>
+                          <Check size={16} className="mr-1" /> Registered
+                        </>
+                      ) : (
+                        "Register"
+                      )}
+                    </Button>
                   )}
                   {isLoggedIn && userRole === "admin" && (
                     <Button variant="outline" className="ml-auto" size="sm">
@@ -157,16 +194,16 @@ const Index = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="participants">
+        <TabsContent value="participants" className="animate-fade-in">
           {isLoggedIn && userRole === "admin" ? (
             <div className="space-y-4">
               <div className="flex justify-between">
                 <h2 className="text-xl font-semibold">Event Participants</h2>
-                <Button>Download CSV</Button>
+                <Button className="hover-scale">Download CSV</Button>
               </div>
               
               {events.map(event => (
-                <Card key={event.id}>
+                <Card key={event.id} className="hover-scale transition-all">
                   <CardHeader>
                     <CardTitle>{event.title}</CardTitle>
                     <CardDescription>
@@ -199,7 +236,7 @@ const Index = () => {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className="hover-scale transition-all animate-fade-in">
               <CardHeader>
                 <CardTitle>Access Restricted</CardTitle>
                 <CardDescription>
@@ -213,14 +250,14 @@ const Index = () => {
           )}
         </TabsContent>
         
-        <TabsContent value="login">
+        <TabsContent value="login" className="animate-fade-in">
           {showRegister ? (
             <RegisterForm 
               onRegister={handleRegisterSuccess} 
               onCancel={() => setShowRegister(false)} 
             />
           ) : (
-            <Card className="max-w-md mx-auto">
+            <Card className="max-w-md mx-auto hover-scale transition-all">
               <CardHeader>
                 <CardTitle>Login</CardTitle>
                 <CardDescription>
@@ -238,7 +275,11 @@ const Index = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="transition-all focus:ring-2 focus:ring-primary"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Login hint: Use "admin" in email for admin access
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor="password">Password</label>
@@ -248,16 +289,22 @@ const Index = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      className="transition-all focus:ring-2 focus:ring-primary"
                     />
                   </div>
                   <div className="pt-2">
-                    <Button type="submit" className="w-full">Login</Button>
+                    <Button type="submit" className="w-full hover-scale transition-all">Login</Button>
                   </div>
                 </form>
               </CardContent>
               <CardFooter className="flex justify-between">
                 <Button variant="link" size="sm">Forgot password?</Button>
-                <Button variant="link" size="sm" onClick={() => setShowRegister(true)}>
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  onClick={() => setShowRegister(true)}
+                  className="story-link"
+                >
                   Register account
                 </Button>
               </CardFooter>
