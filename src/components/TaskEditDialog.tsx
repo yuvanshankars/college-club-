@@ -81,14 +81,14 @@ const TaskEditDialog: React.FC<TaskEditDialogProps> = ({ task, isOpen, onClose }
               <div>
                 <label className="block text-sm font-medium mb-1">Category</label>
                 <Select 
-                  value={categoryId || ""} 
-                  onValueChange={(value) => setCategoryId(value || null)}
+                  value={categoryId || "none"} 
+                  onValueChange={(value) => setCategoryId(value === "none" ? null : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         <div className="flex items-center gap-2">
