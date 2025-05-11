@@ -21,6 +21,7 @@ interface EventListProps {
   userRole: "admin" | "student" | null;
   onRegister: (eventId: string) => void;
   onManage?: (eventId: string) => void;
+  onDelete?: (eventId: string) => void;
 }
 
 const EventList: React.FC<EventListProps> = ({ 
@@ -28,7 +29,8 @@ const EventList: React.FC<EventListProps> = ({
   registeredEvents, 
   userRole, 
   onRegister,
-  onManage
+  onManage,
+  onDelete
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
@@ -89,6 +91,7 @@ const EventList: React.FC<EventListProps> = ({
               userRole={userRole}
               onRegister={onRegister}
               onManage={onManage}
+              onDelete={onDelete}
             />
           ))}
         </div>

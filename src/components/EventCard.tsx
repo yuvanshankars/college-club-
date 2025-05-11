@@ -2,7 +2,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, Check } from "lucide-react";
+import { Calendar, Users, Check, Trash2 } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 interface Event {
   id: string;
@@ -20,6 +21,7 @@ interface EventCardProps {
   userRole: "admin" | "student" | null;
   onRegister: (eventId: string) => void;
   onManage?: (eventId: string) => void;
+  onDelete?: (eventId: string) => void;
 }
 
 const EventCard: React.FC<EventCardProps> = ({ 
@@ -27,7 +29,8 @@ const EventCard: React.FC<EventCardProps> = ({
   isRegistered, 
   userRole, 
   onRegister,
-  onManage 
+  onManage,
+  onDelete 
 }) => {
   return (
     <Card className={`hover-scale transition-all ${
@@ -70,13 +73,24 @@ const EventCard: React.FC<EventCardProps> = ({
         )}
         
         {userRole === "admin" && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => onManage && onManage(event.id)}
-          >
-            Manage
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onManage && onManage(event.id)}
+            >
+              <Users size={16} className="mr-1" />
+              Participants
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={() => onDelete && onDelete(event.id)}
+            >
+              <Trash2 size={16} className="mr-1" />
+              Delete
+            </Button>
+          </div>
         )}
       </CardFooter>
     </Card>

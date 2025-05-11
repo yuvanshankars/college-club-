@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Calendar, Users, LogIn } from "lucide-react";
+import { Calendar, Users, LogIn, Plus, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 import LoginPage from "@/components/LoginPage";
@@ -12,7 +12,7 @@ import EventForm from "@/components/EventForm";
 import ParticipantList from "@/components/ParticipantList";
 
 // Mock events data - in a real app, this would come from an API
-const mockEvents = [
+const initialMockEvents = [
   {
     id: "1",
     title: "Programming Contest",
@@ -66,7 +66,8 @@ const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<"admin" | "student" | null>(null);
   const [registeredEvents, setRegisteredEvents] = useState<string[]>([]);
-  const [events, setEvents] = useState(mockEvents);
+  const [events, setEvents] = useState(initialMockEvents);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
   // Animation effect on mount
   useEffect(() => {
@@ -109,10 +110,27 @@ const Index = () => {
   };
 
   // Handle new event added
-  const handleEventAdded = () => {
-    // In a real app, we would fetch the updated list from the backend
-    // For now, we'll just refresh the UI
-    setActiveTab("events");
+  const handleEventAdded = (newEvent: any) => {
+    // Generate a new ID (in a real app, this would be done by the backend)
+    const newId = String(events.length + 1);
+    const eventWithId = { ...newEvent, id: newId, participants: 0 };
+    setEvents([...events, eventWithId]);
+    toast.success("Event created successfully!");
+  };
+
+  // Handle event deletion
+  const handleEventDelete = (eventId: string) => {
+    // Ask for confirmation before deleting
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      setEvents(events.filter(event => event.id !== eventId));
+      toast.success("Event deleted successfully");
+    }
+  };
+
+  // Handle viewing participants
+  const handleViewParticipants = (eventId: string) => {
+    setSelectedEventId(eventId);
+    setActiveTab("participants");
   };
 
   return (
@@ -150,7 +168,7 @@ const Index = () => {
                 <Calendar className="mr-2" size={18} />
                 Events
               </TabsTrigger>
-              <TabsTrigger value="participants" disabled={userRole !== "admin"} className="hover-scale transition-all">
+              <TabsTrigger value="participants" disabled={userRole !== "admin" && !registeredEvents.length} className="hover-scale transition-all">
                 <Users className="mr-2" size={18} />
                 {userRole === "admin" ? "Participants" : "My Registrations"}
               </TabsTrigger>
@@ -166,12 +184,16 @@ const Index = () => {
                 registeredEvents={registeredEvents}
                 userRole={userRole}
                 onRegister={handleEventRegistration}
+                onManage={userRole === "admin" ? handleViewParticipants : undefined}
+                onDelete={userRole === "admin" ? handleEventDelete : undefined}
               />
             </TabsContent>
             
             <TabsContent value="participants" className="animate-fade-in">
               {userRole === "admin" ? (
-                <ParticipantList events={events} />
+                <ParticipantList 
+                  events={selectedEventId ? events.filter(event => event.id === selectedEventId) : events} 
+                />
               ) : (
                 <div className="space-y-4">
                   <h2 className="text-xl font-semibold">Your Registered Events</h2>

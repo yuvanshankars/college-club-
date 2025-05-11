@@ -9,7 +9,13 @@ import { toast } from "@/components/ui/sonner";
 import { Calendar, Plus } from "lucide-react";
 
 interface EventFormProps {
-  onEventAdded: () => void;
+  onEventAdded: (event: {
+    title: string;
+    description: string;
+    department: string;
+    date: string;
+    location: string;
+  }) => void;
 }
 
 const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
@@ -28,8 +34,17 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
       return;
     }
     
-    // In a real app, this would send data to a backend API
-    toast.success("Event created successfully!");
+    // Create event object
+    const newEvent = {
+      title,
+      description,
+      department,
+      date,
+      location,
+    };
+    
+    // Notify parent component
+    onEventAdded(newEvent);
     
     // Reset form
     setTitle("");
@@ -37,9 +52,6 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
     setDepartment("");
     setDate("");
     setLocation("");
-    
-    // Notify parent component
-    onEventAdded();
   };
 
   return (
