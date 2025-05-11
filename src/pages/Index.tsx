@@ -1,21 +1,17 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
 import { Calendar, Users, LogIn, Plus, Trash2, Images } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { Card, CardContent } from "@/components/ui/card";
 
 import LoginPage from "@/components/LoginPage";
 import EventList from "@/components/EventList";
 import EventForm from "@/components/EventForm";
 import ParticipantList from "@/components/ParticipantList";
+import HomeFeatures from "@/components/HomeFeatures";
+import DepartmentEvents from "@/components/DepartmentEvents";
 
 // Featured event images
 const eventImages = [
@@ -23,7 +19,9 @@ const eventImages = [
   "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
   "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
   "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
-  "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+  "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+  "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
 ];
 
 // Mock events data - in a real app, this would come from an API
@@ -45,7 +43,8 @@ const initialMockEvents = [
     department: "Business",
     date: "2025-05-20",
     location: "Business School Auditorium",
-    participants: 30
+    participants: 30,
+    image: eventImages[1]
   },
   {
     id: "3",
@@ -54,7 +53,8 @@ const initialMockEvents = [
     department: "Engineering",
     date: "2025-06-10",
     location: "Engineering Building",
-    participants: 45
+    participants: 45,
+    image: eventImages[2]
   },
   {
     id: "4",
@@ -63,7 +63,8 @@ const initialMockEvents = [
     department: "Arts",
     date: "2025-06-15",
     location: "Art Gallery",
-    participants: 25
+    participants: 25,
+    image: eventImages[3]
   },
   {
     id: "5",
@@ -72,7 +73,8 @@ const initialMockEvents = [
     department: "Science",
     date: "2025-06-20",
     location: "Science Building, Auditorium",
-    participants: 18
+    participants: 18,
+    image: eventImages[4]
   }
 ];
 
@@ -181,8 +183,7 @@ const Index = () => {
     const eventWithId = { 
       ...newEvent, 
       id: newId, 
-      participants: 0,
-      image: eventImages[Math.floor(Math.random() * eventImages.length)] 
+      participants: 0
     };
     setEvents([...events, eventWithId]);
     toast.success("Event created successfully!");
@@ -301,123 +302,20 @@ const Index = () => {
         {!isLoggedIn && activeTab === "login" ? (
           <LoginPage onLoginSuccess={handleLoginSuccess} />
         ) : !isLoggedIn ? (
-          <div className="max-w-3xl mx-auto text-center py-12">
-            <h2 className="text-3xl font-bold mb-4">Welcome to Lovable</h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Your one-stop platform for college events and activities.
-            </p>
-            
-            {/* Featured Event Images */}
-            <div className="mb-12">
-              <h3 className="text-xl font-semibold mb-4">Featured Events</h3>
-              <Carousel className="w-full max-w-4xl mx-auto">
-                <CarouselContent>
-                  {eventImages.map((img, index) => (
-                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                      <div className="p-1">
-                        <Card className="overflow-hidden">
-                          <div className="h-48">
-                            <img 
-                              src={img} 
-                              alt={`Featured event ${index + 1}`} 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <CardContent className="p-4">
-                            <p className="font-medium">Upcoming Event {index + 1}</p>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              <Card className="hover-scale transition-all">
-                <CardHeader>
-                  <CardTitle>Discover Events</CardTitle>
-                  <CardDescription>Find events that match your interests</CardDescription>
-                </CardHeader>
-              </Card>
-              
-              <Card className="hover-scale transition-all">
-                <CardHeader>
-                  <CardTitle>Register Easily</CardTitle>
-                  <CardDescription>Simple one-click registration process</CardDescription>
-                </CardHeader>
-              </Card>
-              
-              <Card className="hover-scale transition-all">
-                <CardHeader>
-                  <CardTitle>Stay Updated</CardTitle>
-                  <CardDescription>Get notifications about upcoming events</CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
-            
-            <Button size="lg" onClick={() => setActiveTab("login")} className="hover-scale transition-all">
-              <LogIn className="mr-2" size={20} />
-              Get Started
-            </Button>
-          </div>
-        ) : null}
-        
-        {isLoggedIn && activeTab === "events" && (
           <>
-            {userRole === "admin" && (
-              <EventForm onEventAdded={handleEventAdded} />
-            )}
-            
-            <EventList
+            <HomeFeatures 
+              eventImages={eventImages}
+              onLogin={() => setActiveTab("login")} 
+            />
+            <DepartmentEvents 
               events={events}
               registeredEvents={registeredEvents}
               userRole={userRole}
               onRegister={handleEventRegistration}
-              onManage={userRole === "admin" ? handleViewParticipants : undefined}
-              onDelete={userRole === "admin" ? handleEventDelete : undefined}
               username={username}
             />
           </>
-        )}
-        
-        {isLoggedIn && activeTab === "participants" && (
-          <>
-            {userRole === "admin" ? (
-              <ParticipantList 
-                events={selectedEventId ? events.filter(event => event.id === selectedEventId) : events}
-                registeredEvents={registeredEvents}
-                registeredUsers={registeredUsers}
-              />
-            ) : (
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Your Registered Events</h2>
-                
-                {registeredEvents.length > 0 ? (
-                  <EventList
-                    events={events.filter(event => registeredEvents.includes(event.id))}
-                    registeredEvents={registeredEvents}
-                    userRole={userRole}
-                    onRegister={handleEventRegistration}
-                    username={username}
-                  />
-                ) : (
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <p className="text-muted-foreground">You haven't registered for any events yet.</p>
-                      <Button className="mt-4 hover-scale" onClick={() => setActiveTab("events")}>
-                        Browse Events
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            )}
-          </>
-        )}
+        ) : null}
       </main>
       
       <footer className="py-6 border-t mt-12">

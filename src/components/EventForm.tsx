@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
-import { Calendar, Plus } from "lucide-react";
+import { Calendar, Plus, Upload, Image } from "lucide-react";
 
 interface EventFormProps {
   onEventAdded: (event: {
@@ -15,6 +15,7 @@ interface EventFormProps {
     department: string;
     date: string;
     location: string;
+    image?: string;
   }) => void;
 }
 
@@ -24,6 +25,16 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
   const [department, setDepartment] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+
+  // Sample image URLs for quick selection
+  const sampleImages = [
+    "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
+    "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
+    "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +52,7 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
       department,
       date,
       location,
+      image: imageUrl || undefined
     };
     
     // Notify parent component
@@ -52,6 +64,7 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
     setDepartment("");
     setDate("");
     setLocation("");
+    setImageUrl("");
   };
 
   return (
@@ -136,6 +149,30 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
               placeholder="CS Building, Room 101"
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="imageUrl" className="text-sm font-medium flex items-center">
+              <Image size={16} className="mr-2" />
+              Event Image
+            </label>
+            <Input
+              id="imageUrl"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="Enter image URL or select from samples below"
+            />
+            <div className="grid grid-cols-5 gap-2 mt-2">
+              {sampleImages.map((img, index) => (
+                <div 
+                  key={index}
+                  className={`cursor-pointer border-2 rounded overflow-hidden h-16 ${imageUrl === img ? 'border-primary' : 'border-transparent'}`}
+                  onClick={() => setImageUrl(img)}
+                >
+                  <img src={img} alt={`Sample ${index+1}`} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
           </div>
           
           <Button type="submit" className="w-full hover-scale transition-all">
