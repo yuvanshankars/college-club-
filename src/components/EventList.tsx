@@ -13,15 +13,17 @@ interface Event {
   date: string;
   location: string;
   participants: number;
+  image?: string;
 }
 
 interface EventListProps {
   events: Event[];
   registeredEvents: string[];
   userRole: "admin" | "student" | null;
-  onRegister: (eventId: string) => void;
+  onRegister: (eventId: string, username?: string) => void;
   onManage?: (eventId: string) => void;
   onDelete?: (eventId: string) => void;
+  username?: string;
 }
 
 const EventList: React.FC<EventListProps> = ({ 
@@ -30,7 +32,8 @@ const EventList: React.FC<EventListProps> = ({
   userRole, 
   onRegister,
   onManage,
-  onDelete
+  onDelete,
+  username
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
@@ -92,6 +95,7 @@ const EventList: React.FC<EventListProps> = ({
               onRegister={onRegister}
               onManage={onManage}
               onDelete={onDelete}
+              username={username}
             />
           ))}
         </div>

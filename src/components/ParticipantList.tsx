@@ -26,9 +26,11 @@ interface Participant {
 
 interface ParticipantListProps {
   events: Event[];
+  registeredEvents: string[];
+  registeredUsers: Record<string, string[]>;
 }
 
-// Mock participant data since we don't have a real backend yet
+// Mock participant data as a fallback
 const mockParticipants: Participant[] = [
   { id: "p1", name: "John Doe", email: "john.doe@university.edu", registrationDate: "2025-04-30", eventId: "1" },
   { id: "p2", name: "Jane Smith", email: "jane.smith@university.edu", registrationDate: "2025-05-01", eventId: "1" },
@@ -37,13 +39,13 @@ const mockParticipants: Participant[] = [
   { id: "p5", name: "Charlie Brown", email: "charlie.b@university.edu", registrationDate: "2025-05-01", eventId: "3" },
 ];
 
-const ParticipantList: React.FC<ParticipantListProps> = ({ events }) => {
+const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEvents, registeredUsers }) => {
   // Function to download CSV
   const handleDownloadCSV = (eventId: string, eventTitle: string) => {
     // Get participants for this event
-    const eventParticipants = mockParticipants.filter(p => p.eventId === eventId);
+    const usernames = registeredUsers[eventId] || [];
     
-    if (eventParticipants.length === 0) {
+    if (usernames.length === 0) {
       toast.error("No participants to download");
       return;
     }
@@ -52,8 +54,8 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ events }) => {
     const headers = ["Name", "Email", "Registration Date"];
     const csvData = [
       headers.join(","),
-      ...eventParticipants.map(p => 
-        `${p.name},${p.email},${p.registrationDate}`
+      ...usernames.map(name => 
+        `${name},"${name.toLowerCase().replace(' ', '.')}@university.edu","${new Date().toISOString().split('T')[0]}"`
       )
     ].join("\n");
     
@@ -78,8 +80,8 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ events }) => {
   return (
     <div className="space-y-6 animate-fade-in">
       {events.map(event => {
-        // Get participants for this event
-        const eventParticipants = mockParticipants.filter(p => p.eventId === event.id);
+        // Get participants for this event from the registered users
+        const eventParticipants = registeredUsers[event.id] || [];
         
         return (
           <Card key={event.id} className="hover-scale transition-all">
@@ -116,11 +118,11 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ events }) => {
                 </TableHeader>
                 <TableBody>
                   {eventParticipants.length > 0 ? (
-                    eventParticipants.map(participant => (
-                      <TableRow key={participant.id}>
-                        <TableCell>{participant.name}</TableCell>
-                        <TableCell>{participant.email}</TableCell>
-                        <TableCell>{participant.registrationDate}</TableCell>
+                    eventParticipants.map((name, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{name}</TableCell>
+                        <TableCell>{name.toLowerCase().replace(' ', '.')}@university.edu</TableCell>
+                        <TableCell>{new Date().toISOString().split('T')[0]}</TableCell>
                       </TableRow>
                     ))
                   ) : (

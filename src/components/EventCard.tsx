@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, Check, Trash2 } from "lucide-react";
+import { Calendar, Users, Check, Trash2, Images } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 
 interface Event {
@@ -13,16 +13,27 @@ interface Event {
   date: string;
   location: string;
   participants: number;
+  image?: string;
 }
 
 interface EventCardProps {
   event: Event;
   isRegistered: boolean;
   userRole: "admin" | "student" | null;
-  onRegister: (eventId: string) => void;
+  onRegister: (eventId: string, username?: string) => void;
   onManage?: (eventId: string) => void;
   onDelete?: (eventId: string) => void;
+  username?: string;
 }
+
+// Array of fallback images from Unsplash
+const fallbackImages = [
+  "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
+  "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+  "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+  "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
+  "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+];
 
 const EventCard: React.FC<EventCardProps> = ({ 
   event, 
@@ -30,12 +41,26 @@ const EventCard: React.FC<EventCardProps> = ({
   userRole, 
   onRegister,
   onManage,
-  onDelete 
+  onDelete,
+  username = "Current User"
 }) => {
+  // Get an image based on the event ID
+  const eventImage = event.image || fallbackImages[parseInt(event.id) % fallbackImages.length];
+  
   return (
     <Card className={`hover-scale transition-all ${
       isRegistered ? "border-primary" : ""
     }`}>
+      <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+        <img 
+          src={eventImage} 
+          alt={event.title}
+          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+        />
+        <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
+          {event.department}
+        </div>
+      </div>
       <CardHeader>
         <CardTitle>{event.title}</CardTitle>
         <CardDescription>{event.department}</CardDescription>
@@ -60,7 +85,7 @@ const EventCard: React.FC<EventCardProps> = ({
           <Button 
             className={`transition-all ${isRegistered ? "bg-green-500 hover:bg-green-600" : ""}`}
             size="sm"
-            onClick={() => onRegister(event.id)}
+            onClick={() => onRegister(event.id, username)}
           >
             {isRegistered ? (
               <>

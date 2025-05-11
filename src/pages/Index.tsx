@@ -1,15 +1,30 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Calendar, Users, LogIn, Plus, Trash2 } from "lucide-react";
+import { Calendar, Users, LogIn, Plus, Trash2, Images } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 import LoginPage from "@/components/LoginPage";
 import EventList from "@/components/EventList";
 import EventForm from "@/components/EventForm";
 import ParticipantList from "@/components/ParticipantList";
+
+// Featured event images
+const eventImages = [
+  "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
+  "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+  "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+  "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
+  "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+];
 
 // Mock events data - in a real app, this would come from an API
 const initialMockEvents = [
@@ -20,7 +35,8 @@ const initialMockEvents = [
     department: "Computer Science",
     date: "2025-05-15",
     location: "CS Building, Room 101",
-    participants: 12
+    participants: 12,
+    image: eventImages[0]
   },
   {
     id: "2",
@@ -68,6 +84,10 @@ const Index = () => {
   const [registeredEvents, setRegisteredEvents] = useState<string[]>([]);
   const [events, setEvents] = useState(initialMockEvents);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [username, setUsername] = useState<string>("");
+  
+  // Track registered users by event ID
+  const [registeredUsers, setRegisteredUsers] = useState<Record<string, string[]>>({});
 
   // Animation effect on mount
   useEffect(() => {
@@ -82,6 +102,7 @@ const Index = () => {
     setIsLoggedIn(true);
     setUserRole(role);
     setActiveTab("events");
+    setUsername(role === "admin" ? "Administrator" : "Student User");
   };
 
   // Handle logout
@@ -89,22 +110,66 @@ const Index = () => {
     setIsLoggedIn(false);
     setUserRole(null);
     setRegisteredEvents([]);
+    setUsername("");
     toast.info("Logged out successfully");
   };
 
   // Handle event registration
-  const handleEventRegistration = (eventId: string) => {
+  const handleEventRegistration = (eventId: string, userDisplayName?: string) => {
     if (!isLoggedIn) {
       setActiveTab("login");
       toast.error("Please login to register for events");
       return;
     }
     
+    const displayName = userDisplayName || username;
+    
     if (registeredEvents.includes(eventId)) {
+      // Unregister
       setRegisteredEvents(registeredEvents.filter(id => id !== eventId));
+      
+      // Update the participants count
+      setEvents(events.map(event => {
+        if (event.id === eventId) {
+          return {...event, participants: Math.max(0, event.participants - 1)};
+        }
+        return event;
+      }));
+      
+      // Remove user from registered users for this event
+      setRegisteredUsers(prev => {
+        const updatedUsers = {...prev};
+        if (updatedUsers[eventId]) {
+          updatedUsers[eventId] = updatedUsers[eventId].filter(name => name !== displayName);
+        }
+        return updatedUsers;
+      });
+      
       toast.info("You've unregistered from this event");
     } else {
+      // Register
       setRegisteredEvents([...registeredEvents, eventId]);
+      
+      // Update the participants count
+      setEvents(events.map(event => {
+        if (event.id === eventId) {
+          return {...event, participants: event.participants + 1};
+        }
+        return event;
+      }));
+      
+      // Add user to registered users for this event
+      setRegisteredUsers(prev => {
+        const updatedUsers = {...prev};
+        if (!updatedUsers[eventId]) {
+          updatedUsers[eventId] = [];
+        }
+        if (!updatedUsers[eventId].includes(displayName)) {
+          updatedUsers[eventId] = [...updatedUsers[eventId], displayName];
+        }
+        return updatedUsers;
+      });
+      
       toast.success("You've successfully registered for this event!");
     }
   };
@@ -113,7 +178,12 @@ const Index = () => {
   const handleEventAdded = (newEvent: any) => {
     // Generate a new ID (in a real app, this would be done by the backend)
     const newId = String(events.length + 1);
-    const eventWithId = { ...newEvent, id: newId, participants: 0 };
+    const eventWithId = { 
+      ...newEvent, 
+      id: newId, 
+      participants: 0,
+      image: eventImages[Math.floor(Math.random() * eventImages.length)] 
+    };
     setEvents([...events, eventWithId]);
     toast.success("Event created successfully!");
   };
@@ -149,6 +219,7 @@ const Index = () => {
               <div className="flex items-center gap-2">
                 <span className="text-sm">
                   Logged in as <strong className="capitalize">{userRole}</strong>
+                  {username && ` (${username})`}
                 </span>
                 <Button variant="outline" onClick={handleLogout} className="hover-scale">Logout</Button>
               </div>
@@ -186,6 +257,7 @@ const Index = () => {
                 onRegister={handleEventRegistration}
                 onManage={userRole === "admin" ? handleViewParticipants : undefined}
                 onDelete={userRole === "admin" ? handleEventDelete : undefined}
+                username={username}
               />
             </TabsContent>
             
@@ -193,6 +265,8 @@ const Index = () => {
               {userRole === "admin" ? (
                 <ParticipantList 
                   events={selectedEventId ? events.filter(event => event.id === selectedEventId) : events} 
+                  registeredEvents={registeredEvents}
+                  registeredUsers={registeredUsers}
                 />
               ) : (
                 <div className="space-y-4">
@@ -204,6 +278,7 @@ const Index = () => {
                       registeredEvents={registeredEvents}
                       userRole={userRole}
                       onRegister={handleEventRegistration}
+                      username={username}
                     />
                   ) : (
                     <Card>
@@ -231,6 +306,35 @@ const Index = () => {
             <p className="text-xl text-muted-foreground mb-8">
               Your one-stop platform for college events and activities.
             </p>
+            
+            {/* Featured Event Images */}
+            <div className="mb-12">
+              <h3 className="text-xl font-semibold mb-4">Featured Events</h3>
+              <Carousel className="w-full max-w-4xl mx-auto">
+                <CarouselContent>
+                  {eventImages.map((img, index) => (
+                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                      <div className="p-1">
+                        <Card className="overflow-hidden">
+                          <div className="h-48">
+                            <img 
+                              src={img} 
+                              alt={`Featured event ${index + 1}`} 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <CardContent className="p-4">
+                            <p className="font-medium">Upcoming Event {index + 1}</p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               <Card className="hover-scale transition-all">
@@ -261,6 +365,59 @@ const Index = () => {
             </Button>
           </div>
         ) : null}
+        
+        {isLoggedIn && activeTab === "events" && (
+          <>
+            {userRole === "admin" && (
+              <EventForm onEventAdded={handleEventAdded} />
+            )}
+            
+            <EventList
+              events={events}
+              registeredEvents={registeredEvents}
+              userRole={userRole}
+              onRegister={handleEventRegistration}
+              onManage={userRole === "admin" ? handleViewParticipants : undefined}
+              onDelete={userRole === "admin" ? handleEventDelete : undefined}
+              username={username}
+            />
+          </>
+        )}
+        
+        {isLoggedIn && activeTab === "participants" && (
+          <>
+            {userRole === "admin" ? (
+              <ParticipantList 
+                events={selectedEventId ? events.filter(event => event.id === selectedEventId) : events}
+                registeredEvents={registeredEvents}
+                registeredUsers={registeredUsers}
+              />
+            ) : (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold">Your Registered Events</h2>
+                
+                {registeredEvents.length > 0 ? (
+                  <EventList
+                    events={events.filter(event => registeredEvents.includes(event.id))}
+                    registeredEvents={registeredEvents}
+                    userRole={userRole}
+                    onRegister={handleEventRegistration}
+                    username={username}
+                  />
+                ) : (
+                  <Card>
+                    <CardContent className="p-6 text-center">
+                      <p className="text-muted-foreground">You haven't registered for any events yet.</p>
+                      <Button className="mt-4 hover-scale" onClick={() => setActiveTab("events")}>
+                        Browse Events
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </main>
       
       <footer className="py-6 border-t mt-12">
