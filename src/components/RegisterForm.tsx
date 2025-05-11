@@ -12,10 +12,10 @@ interface RegisterFormProps {
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onCancel }) => {
   const [name, setName] = useState("");
+  const [regId, setRegId] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<"student" | "admin">("student");
   const [department, setDepartment] = useState("");
 
   // Mock registration function - would connect to auth system in real implementation
@@ -27,16 +27,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onCancel }) => 
       return;
     }
     
-    console.log("Registering user:", { name, email, role, department });
+    // Validate registration ID format
+    if (!regId.match(/^\d{2}[a-z]{3}\d{3}$/i)) {
+      alert("Invalid registration ID format. Use format: 23CSR248");
+      return;
+    }
+    
+    console.log("Registering user:", { name, regId, email, department });
     onRegister();
   };
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Create Account</CardTitle>
+        <CardTitle>Create Student Account</CardTitle>
         <CardDescription>
-          Register to manage or participate in campus events
+          Register to participate in campus events
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -49,6 +55,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onCancel }) => 
               onChange={(e) => setName(e.target.value)}
               required
             />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="regId">Registration ID</label>
+            <Input 
+              id="regId" 
+              placeholder="23CSR248" 
+              value={regId}
+              onChange={(e) => setRegId(e.target.value.toUpperCase())}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Format: 23CSR248 (year + dept code + number)
+            </p>
           </div>
           
           <div className="space-y-2">
@@ -85,40 +105,24 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onCancel }) => 
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">User Type</label>
-              <Select 
-                value={role} 
-                onValueChange={(value) => setRole(value as "student" | "admin")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select user type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Department</label>
-              <Select
-                value={department}
-                onValueChange={setDepartment}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cs">Computer Science</SelectItem>
-                  <SelectItem value="eng">Engineering</SelectItem>
-                  <SelectItem value="biz">Business</SelectItem>
-                  <SelectItem value="arts">Arts</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Department</label>
+            <Select
+              value={department}
+              onValueChange={setDepartment}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cs">Computer Science</SelectItem>
+                <SelectItem value="it">Information Technology</SelectItem>
+                <SelectItem value="ece">Electronics & Communication</SelectItem>
+                <SelectItem value="eee">Electrical & Electronics</SelectItem>
+                <SelectItem value="mech">Mechanical Engineering</SelectItem>
+                <SelectItem value="civil">Civil Engineering</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="flex justify-between pt-2">

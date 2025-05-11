@@ -1,6 +1,7 @@
 
-import React from "react";
+import React, { useState } from "react";
 import EventList from "@/components/EventList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Event {
   id: string;
@@ -32,19 +33,46 @@ const DepartmentEvents: React.FC<DepartmentEventsProps> = ({
   onDelete,
   username
 }) => {
+  // Get unique departments from events
+  const departments = Array.from(new Set(events.map(event => event.department)));
+  const [selectedDept, setSelectedDept] = useState<string>("all");
+  
+  // Filter events based on selected department
+  const filteredEvents = selectedDept === "all" 
+    ? events 
+    : events.filter(event => event.department === selectedDept);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 my-12">
       <h2 className="text-3xl font-bold text-center mb-8">Events by Department</h2>
-      <EventList
-        events={events}
-        registeredEvents={registeredEvents}
-        userRole={userRole}
-        onRegister={onRegister}
-        onManage={onManage}
-        onDelete={onDelete}
-        username={username}
-        showByDepartment={true}
-      />
+      
+      <Tabs 
+        value={selectedDept} 
+        onValueChange={setSelectedDept} 
+        className="w-full"
+      >
+        <TabsList className="flex overflow-x-auto mb-8 pb-2">
+          <TabsTrigger value="all" className="flex-shrink-0">All Departments</TabsTrigger>
+          {departments.map(dept => (
+            <TabsTrigger key={dept} value={dept} className="flex-shrink-0">
+              {dept}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        
+        <TabsContent value={selectedDept} className="mt-6 animate-fade-in">
+          <EventList
+            events={filteredEvents}
+            registeredEvents={registeredEvents}
+            userRole={userRole}
+            onRegister={onRegister}
+            onManage={onManage}
+            onDelete={onDelete}
+            username={username}
+            showByDepartment={true}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

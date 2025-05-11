@@ -19,7 +19,7 @@ interface HomeFeaturesProps {
 const HomeFeatures: React.FC<HomeFeaturesProps> = ({ eventImages, onLogin }) => {
   return (
     <div className="max-w-3xl mx-auto text-center py-12">
-      <h2 className="text-3xl font-bold mb-4">Welcome to Lovable</h2>
+      <h2 className="text-3xl font-bold mb-4">Welcome to KEC Clubs</h2>
       <p className="text-xl text-muted-foreground mb-8">
         Your one-stop platform for college events and activities.
       </p>
