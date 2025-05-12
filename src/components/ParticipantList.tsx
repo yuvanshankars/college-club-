@@ -42,12 +42,15 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEve
     }
     
     // Create CSV content with proper headers and user data
+    // Importantly, using the actual registered student names in the CSV file
     const headers = ["Name", "Email", "Registration Date"];
     const csvData = [
       headers.join(","),
-      ...usernames.map(name => 
-        `"${name}","${name.toLowerCase().replace(' ', '.')}@university.edu","${new Date().toISOString().split('T')[0]}"`
-      )
+      ...usernames.map(name => {
+        const email = name.toLowerCase().replace(/\s+/g, '.') + '@university.edu';
+        const registrationDate = new Date().toISOString().split('T')[0];
+        return `"${name}","${email}","${registrationDate}"`;
+      })
     ].join("\n");
     
     // Create a Blob and download link
@@ -112,7 +115,7 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEve
                     eventParticipants.map((name, index) => (
                       <TableRow key={index}>
                         <TableCell>{name}</TableCell>
-                        <TableCell>{name.toLowerCase().replace(' ', '.')}@university.edu</TableCell>
+                        <TableCell>{name.toLowerCase().replace(/\s+/g, '.')}@university.edu</TableCell>
                         <TableCell>{new Date().toISOString().split('T')[0]}</TableCell>
                       </TableRow>
                     ))
