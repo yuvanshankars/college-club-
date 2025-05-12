@@ -12,6 +12,12 @@ interface LoginPageProps {
   onLoginSuccess: (role: "admin" | "student") => void;
 }
 
+// List of valid student registration IDs (in a real app, this would come from a database)
+const validRegistrationIds = ["23CSR248", "23CSR249", "23CSR250"];
+
+// List of valid admin emails (in a real app, this would come from a database)
+const validAdminEmails = ["admin@kec.edu", "hod@kec.edu", "principal@kec.edu"];
+
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [activeTab, setActiveTab] = useState<"student" | "admin">("student");
   const [email, setEmail] = useState("");
@@ -24,15 +30,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     
     if (activeTab === "admin") {
       // Admin login with email
-      if (email.includes("admin")) {
+      if (validAdminEmails.includes(email.toLowerCase())) {
         onLoginSuccess("admin");
         toast.success("Logged in as Administrator");
       } else {
-        toast.error("Invalid admin credentials");
+        toast.error("Invalid admin credentials. Only registered admin emails can log in.");
       }
     } else {
       // Student login with registration ID
-      if (regId.match(/^\d{2}[a-z]{3}\d{3}$/i)) {
+      if (validRegistrationIds.includes(regId) || regId.match(/^\d{2}[a-z]{3}\d{3}$/i)) {
         onLoginSuccess("student");
         toast.success("Logged in as Student");
       } else {
@@ -41,7 +47,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  // Mock registration success handler
+  // Registration success handler
   const handleRegisterSuccess = () => {
     setShowRegister(false);
     toast.success("Registration successful! You can now log in.");
@@ -84,7 +90,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     className="transition-all focus:ring-2 focus:ring-primary"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Login hint: Use "admin" in email for admin access
+                    Only registered admin emails can login (e.g., admin@kec.edu)
                   </p>
                 </div>
               ) : (

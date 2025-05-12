@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import EventList from "@/components/EventList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Maximize } from "lucide-react";
 
 interface Event {
   id: string;
@@ -36,15 +37,25 @@ const DepartmentEvents: React.FC<DepartmentEventsProps> = ({
   // Get unique departments from events
   const departments = Array.from(new Set(events.map(event => event.department)));
   const [selectedDept, setSelectedDept] = useState<string>("all");
+  const [expandedView, setExpandedView] = useState(false);
   
-  // Filter events based on selected department
+  // Filter events based on selected department, including "All Departments" events
   const filteredEvents = selectedDept === "all" 
     ? events 
-    : events.filter(event => event.department === selectedDept);
+    : events.filter(event => event.department === selectedDept || event.department === "All Departments");
 
   return (
-    <div className="space-y-8 my-12">
-      <h2 className="text-3xl font-bold text-center mb-8">Events by Department</h2>
+    <div className={`space-y-8 my-12 ${expandedView ? 'max-w-full' : ''}`}>
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-3xl font-bold text-center">Events by Department</h2>
+        <button 
+          className="flex items-center text-sm text-primary hover:underline"
+          onClick={() => setExpandedView(!expandedView)}
+        >
+          <Maximize size={16} className="mr-1" />
+          {expandedView ? "Reduce" : "Expand"} View
+        </button>
+      </div>
       
       <Tabs 
         value={selectedDept} 

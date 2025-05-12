@@ -30,15 +30,6 @@ interface ParticipantListProps {
   registeredUsers: Record<string, string[]>;
 }
 
-// Mock participant data as a fallback
-const mockParticipants: Participant[] = [
-  { id: "p1", name: "John Doe", email: "john.doe@university.edu", registrationDate: "2025-04-30", eventId: "1" },
-  { id: "p2", name: "Jane Smith", email: "jane.smith@university.edu", registrationDate: "2025-05-01", eventId: "1" },
-  { id: "p3", name: "Alice Johnson", email: "alice.j@university.edu", registrationDate: "2025-05-02", eventId: "2" },
-  { id: "p4", name: "Bob Wilson", email: "bob.wilson@university.edu", registrationDate: "2025-05-03", eventId: "2" },
-  { id: "p5", name: "Charlie Brown", email: "charlie.b@university.edu", registrationDate: "2025-05-01", eventId: "3" },
-];
-
 const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEvents, registeredUsers }) => {
   // Function to download CSV
   const handleDownloadCSV = (eventId: string, eventTitle: string) => {
@@ -50,12 +41,12 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEve
       return;
     }
     
-    // Create CSV content
+    // Create CSV content with proper headers and user data
     const headers = ["Name", "Email", "Registration Date"];
     const csvData = [
       headers.join(","),
       ...usernames.map(name => 
-        `${name},"${name.toLowerCase().replace(' ', '.')}@university.edu","${new Date().toISOString().split('T')[0]}"`
+        `"${name}","${name.toLowerCase().replace(' ', '.')}@university.edu","${new Date().toISOString().split('T')[0]}"`
       )
     ].join("\n");
     

@@ -27,13 +27,15 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
   const [location, setLocation] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
-  // Sample image URLs for quick selection
+  // Sample image URLs for quick selection - enhanced with more images
   const sampleImages = [
     "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
     "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
     "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
     "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7",
-    "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+    "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+    "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
+    "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -113,6 +115,7 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="All Departments">All Departments</SelectItem>
                   <SelectItem value="Computer Science">Computer Science</SelectItem>
                   <SelectItem value="Business">Business</SelectItem>
                   <SelectItem value="Engineering">Engineering</SelectItem>
@@ -162,11 +165,11 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="Enter image URL or select from samples below"
             />
-            <div className="grid grid-cols-5 gap-2 mt-2">
+            <div className="grid grid-cols-3 md:grid-cols-7 gap-2 mt-2">
               {sampleImages.map((img, index) => (
                 <div 
                   key={index}
-                  className={`cursor-pointer border-2 rounded overflow-hidden h-16 ${imageUrl === img ? 'border-primary' : 'border-transparent'}`}
+                  className={`cursor-pointer border-2 rounded overflow-hidden h-20 ${imageUrl === img ? 'border-primary' : 'border-transparent'}`}
                   onClick={() => setImageUrl(img)}
                 >
                   <img src={img} alt={`Sample ${index+1}`} className="w-full h-full object-cover" />
