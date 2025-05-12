@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Users, Download } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { participantService } from "@/services/eventService";
 
 interface Event {
   id: string;
@@ -14,41 +15,29 @@ interface Event {
   date: string;
   location: string;
   participants: number;
-}
-
-interface Participant {
-  id: string;
-  name: string;
-  email: string;
-  registrationDate: string;
-  eventId: string;
+  image?: string;
 }
 
 interface ParticipantListProps {
   events: Event[];
-  registeredEvents: string[];
-  registeredUsers: Record<string, string[]>;
 }
 
-const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEvents, registeredUsers }) => {
+const ParticipantList: React.FC<ParticipantListProps> = ({ events }) => {
   // Function to download CSV
   const handleDownloadCSV = (eventId: string, eventTitle: string) => {
-    // Get participants for this event
-    const usernames = registeredUsers[eventId] || [];
+    // Get participants for this event from our service
+    const participants = participantService.getParticipantsForCSV(eventId);
     
-    if (usernames.length === 0) {
+    if (participants.length === 0) {
       toast.error("No participants to download");
       return;
     }
     
     // Create CSV content with proper headers and user data
-    // Importantly, using the actual registered student names in the CSV file
     const headers = ["Name", "Email", "Registration Date"];
     const csvData = [
       headers.join(","),
-      ...usernames.map(name => {
-        const email = name.toLowerCase().replace(/\s+/g, '.') + '@university.edu';
-        const registrationDate = new Date().toISOString().split('T')[0];
+      ...participants.map(({ name, email, registrationDate }) => {
         return `"${name}","${email}","${registrationDate}"`;
       })
     ].join("\n");
@@ -74,8 +63,8 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEve
   return (
     <div className="space-y-6 animate-fade-in">
       {events.map(event => {
-        // Get participants for this event from the registered users
-        const eventParticipants = registeredUsers[event.id] || [];
+        // Get participants for this event from our service
+        const eventParticipants = participantService.getEventParticipants(event.id);
         
         return (
           <Card key={event.id} className="hover-scale transition-all">
@@ -112,11 +101,11 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEve
                 </TableHeader>
                 <TableBody>
                   {eventParticipants.length > 0 ? (
-                    eventParticipants.map((name, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{name}</TableCell>
-                        <TableCell>{name.toLowerCase().replace(/\s+/g, '.')}@university.edu</TableCell>
-                        <TableCell>{new Date().toISOString().split('T')[0]}</TableCell>
+                    eventParticipants.map((participant, index) => (
+                      <TableRow key={participant.id}>
+                        <TableCell>{participant.name}</TableCell>
+                        <TableCell>{participant.email}</TableCell>
+                        <TableCell>{new Date(participant.registrationDate).toISOString().split('T')[0]}</TableCell>
                       </TableRow>
                     ))
                   ) : (

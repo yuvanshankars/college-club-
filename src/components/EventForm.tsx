@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,16 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { Calendar, Plus, Upload, Image } from "lucide-react";
+import { eventService } from "@/services/eventService";
 
 interface EventFormProps {
-  onEventAdded: (event: {
-    title: string;
-    description: string;
-    department: string;
-    date: string;
-    location: string;
-    image?: string;
-  }) => void;
+  onEventAdded: (event: any) => void;
 }
 
 const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
@@ -47,26 +40,31 @@ const EventForm: React.FC<EventFormProps> = ({ onEventAdded }) => {
       return;
     }
     
-    // Create event object
-    const newEvent = {
-      title,
-      description,
-      department,
-      date,
-      location,
-      image: imageUrl || undefined
-    };
-    
-    // Notify parent component
-    onEventAdded(newEvent);
-    
-    // Reset form
-    setTitle("");
-    setDescription("");
-    setDepartment("");
-    setDate("");
-    setLocation("");
-    setImageUrl("");
+    try {
+      // Create new event using our service
+      const newEvent = eventService.createEvent({
+        title,
+        description,
+        department,
+        date,
+        location,
+        image: imageUrl || undefined
+      });
+      
+      // Notify parent component
+      onEventAdded(newEvent);
+      
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setDepartment("");
+      setDate("");
+      setLocation("");
+      setImageUrl("");
+    } catch (error) {
+      toast.error("Failed to create event");
+      console.error(error);
+    }
   };
 
   return (

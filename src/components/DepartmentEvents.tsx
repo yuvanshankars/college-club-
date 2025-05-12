@@ -1,19 +1,8 @@
-
 import React, { useState } from "react";
 import EventList from "@/components/EventList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Maximize } from "lucide-react";
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  department: string;
-  date: string;
-  location: string;
-  participants: number;
-  image?: string;
-}
+import { Event } from "@/services/eventService";
 
 interface DepartmentEventsProps {
   events: Event[];

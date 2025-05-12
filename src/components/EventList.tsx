@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import EventCard from "@/components/EventCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,17 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  department: string;
-  date: string;
-  location: string;
-  participants: number;
-  image?: string;
-}
+import { Event } from "@/services/eventService";
 
 interface EventListProps {
   events: Event[];

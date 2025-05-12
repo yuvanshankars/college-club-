@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,8 +11,9 @@ import EventForm from "@/components/EventForm";
 import ParticipantList from "@/components/ParticipantList";
 import HomeFeatures from "@/components/HomeFeatures";
 import DepartmentEvents from "@/components/DepartmentEvents";
+import { eventService, participantService, Event } from "@/services/eventService";
 
-// Featured event images
+// Featured event images for homepage
 const eventImages = [
   "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
   "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
@@ -24,72 +24,38 @@ const eventImages = [
   "https://images.unsplash.com/photo-1506744038136-46273834b3fb"
 ];
 
-// Mock events data - in a real app, this would come from an API
-const initialMockEvents = [
-  {
-    id: "1",
-    title: "Programming Contest",
-    description: "Annual coding competition for all CS students",
-    department: "Computer Science",
-    date: "2025-05-15",
-    location: "CS Building, Room 101",
-    participants: 12,
-    image: eventImages[0]
-  },
-  {
-    id: "2",
-    title: "Business Ethics Seminar",
-    description: "A discussion on ethical practices in business",
-    department: "Business",
-    date: "2025-05-20",
-    location: "Business School Auditorium",
-    participants: 30,
-    image: eventImages[1]
-  },
-  {
-    id: "3",
-    title: "Engineering Expo",
-    description: "Showcase of student engineering projects",
-    department: "Engineering",
-    date: "2025-06-10",
-    location: "Engineering Building",
-    participants: 45,
-    image: eventImages[2]
-  },
-  {
-    id: "4",
-    title: "Art Exhibition",
-    description: "Student art showcase featuring paintings and sculptures",
-    department: "Arts",
-    date: "2025-06-15",
-    location: "Art Gallery",
-    participants: 25,
-    image: eventImages[3]
-  },
-  {
-    id: "5",
-    title: "Chemistry Symposium",
-    description: "Research presentations by chemistry students",
-    department: "Science",
-    date: "2025-06-20",
-    location: "Science Building, Auditorium",
-    participants: 18,
-    image: eventImages[4]
-  }
-];
-
 const Index = () => {
   // State variables
   const [activeTab, setActiveTab] = useState("events");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<"admin" | "student" | null>(null);
   const [registeredEvents, setRegisteredEvents] = useState<string[]>([]);
-  const [events, setEvents] = useState(initialMockEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [username, setUsername] = useState<string>("");
   
-  // Track registered users by event ID
-  const [registeredUsers, setRegisteredUsers] = useState<Record<string, string[]>>({});
+  // Load events from our database service when component mounts
+  useEffect(() => {
+    const loadEvents = () => {
+      try {
+        const allEvents = eventService.getAllEvents();
+        setEvents(allEvents);
+      } catch (error) {
+        console.error("Failed to load events:", error);
+        toast.error("Failed to load events");
+      }
+    };
+    
+    loadEvents();
+  }, []);
+  
+  // Load user's registered events when they log in
+  useEffect(() => {
+    if (isLoggedIn && username) {
+      const userRegistrations = participantService.getUserRegisteredEvents(username);
+      setRegisteredEvents(userRegistrations);
+    }
+  }, [isLoggedIn, username]);
 
   // Animation effect on mount
   useEffect(() => {
@@ -127,65 +93,43 @@ const Index = () => {
     const displayName = userDisplayName || username;
     
     if (registeredEvents.includes(eventId)) {
-      // Unregister
-      setRegisteredEvents(registeredEvents.filter(id => id !== eventId));
-      
-      // Update the participants count
-      setEvents(events.map(event => {
-        if (event.id === eventId) {
-          return {...event, participants: Math.max(0, event.participants - 1)};
-        }
-        return event;
-      }));
-      
-      // Remove user from registered users for this event
-      setRegisteredUsers(prev => {
-        const updatedUsers = {...prev};
-        if (updatedUsers[eventId]) {
-          updatedUsers[eventId] = updatedUsers[eventId].filter(name => name !== displayName);
-        }
-        return updatedUsers;
-      });
-      
-      toast.info("You've unregistered from this event");
+      // Unregister using our service
+      const result = participantService.unregisterParticipant(displayName, eventId);
+      if (result.success) {
+        setRegisteredEvents(registeredEvents.filter(id => id !== eventId));
+        
+        // Update events list to reflect changes in participant count
+        setEvents(prevEvents => {
+          return prevEvents.map(event => {
+            if (event.id === eventId) {
+              return { ...event, participants: Math.max(0, event.participants - 1) };
+            }
+            return event;
+          });
+        });
+      }
     } else {
-      // Register
-      setRegisteredEvents([...registeredEvents, eventId]);
-      
-      // Update the participants count
-      setEvents(events.map(event => {
-        if (event.id === eventId) {
-          return {...event, participants: event.participants + 1};
-        }
-        return event;
-      }));
-      
-      // Add user to registered users for this event
-      setRegisteredUsers(prev => {
-        const updatedUsers = {...prev};
-        if (!updatedUsers[eventId]) {
-          updatedUsers[eventId] = [];
-        }
-        if (!updatedUsers[eventId].includes(displayName)) {
-          updatedUsers[eventId] = [...updatedUsers[eventId], displayName];
-        }
-        return updatedUsers;
-      });
-      
-      toast.success("You've successfully registered for this event!");
+      // Register using our service
+      const result = participantService.registerParticipant(displayName, eventId);
+      if (result.success) {
+        setRegisteredEvents([...registeredEvents, eventId]);
+        
+        // Update events list to reflect changes in participant count
+        setEvents(prevEvents => {
+          return prevEvents.map(event => {
+            if (event.id === eventId) {
+              return { ...event, participants: event.participants + 1 };
+            }
+            return event;
+          });
+        });
+      }
     }
   };
 
   // Handle new event added
-  const handleEventAdded = (newEvent: any) => {
-    // Generate a new ID (in a real app, this would be done by the backend)
-    const newId = String(events.length + 1);
-    const eventWithId = { 
-      ...newEvent, 
-      id: newId, 
-      participants: 0
-    };
-    setEvents([...events, eventWithId]);
+  const handleEventAdded = (newEvent: Event) => {
+    setEvents([...events, newEvent]);
     toast.success("Event created successfully!");
   };
 
@@ -193,8 +137,14 @@ const Index = () => {
   const handleEventDelete = (eventId: string) => {
     // Ask for confirmation before deleting
     if (window.confirm("Are you sure you want to delete this event?")) {
-      setEvents(events.filter(event => event.id !== eventId));
-      toast.success("Event deleted successfully");
+      const result = eventService.deleteEvent(eventId);
+      if (result) {
+        setEvents(events.filter(event => event.id !== eventId));
+        // Remove from registered events if it was registered
+        if (registeredEvents.includes(eventId)) {
+          setRegisteredEvents(registeredEvents.filter(id => id !== eventId));
+        }
+      }
     }
   };
 
