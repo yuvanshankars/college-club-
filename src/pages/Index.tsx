@@ -217,7 +217,6 @@ const Index = () => {
                 <ParticipantList 
                   events={selectedEventId ? events.filter(event => event.id === selectedEventId) : events} 
                   registeredEvents={registeredEvents}
-                  registeredUsers={registeredUsers}
                 />
               ) : (
                 <div className="space-y-4">

@@ -20,9 +20,10 @@ interface Event {
 
 interface ParticipantListProps {
   events: Event[];
+  registeredEvents?: string[]; // Added this prop
 }
 
-const ParticipantList: React.FC<ParticipantListProps> = ({ events }) => {
+const ParticipantList: React.FC<ParticipantListProps> = ({ events, registeredEvents = [] }) => {
   // Function to download CSV
   const handleDownloadCSV = (eventId: string, eventTitle: string) => {
     // Get participants for this event from our service
